@@ -1,0 +1,120 @@
+################################################
+#
+#  Extrai formantes de vogais selecionadas com TextGrid
+#  
+#  Claudemir C. Santos
+#  claudemircsantos@uol.com.br 
+#
+#
+################################################
+# 
+# Com este procedimento é possível automatizar a extração 
+# dos formantes de vogais previamente selecionada pelo analista.
+#
+# 1. Crie um objeto do tipo "formant" para aquele som;
+# 2. Muita atenção na configuração do número de formantes
+# e no alcance do espectro.
+#
+# Marque os intervalos que deseja analisar
+# em um Textgrid, assim:
+#
+# ~~~~~~~~ ------ ~~~~~~~ --- ~~~~~~~~ ---
+# __________________________________
+# | a |             | i |        e |
+#
+#
+#  Abra o item do menu <PRAAT> e em seguida clique
+#  em <NEW SCRIPT>. Copie o código do script e execute
+#  com <RUN>.
+#
+#  Você irá observar a criação de um objeto contendo
+#  a tabela com os valores dos formantes.
+################################################
+	# name$ = "NOME_ARQUIVO"
+	
+	thisSound$ = selected$("Sound")
+	thisTextGrid$ = selected$("TextGrid")
+	writeInfoLine: "Iniciando o processo de extração ..."
+
+# How many timepoints?
+	num_timepoints = 10
+	appendInfoLine: "Rótulo dividido em: ", num_timepoints
+
+# Indicar o número do 'tier'
+	v_tier = 1
+
+# Constroi a tabela
+	appendInfoLine: "Criando tabela ..."	
+	Create Table with column names: "formantes", 0, "vogal time_index v_time time_abs F1 F2 F3"
+	row_index = 0
+
+# Conta os intervalos
+	#select TextGrid 'name$'
+	select TextGrid 'thisTextGrid$'
+	num_intervals = Get number of intervals: v_tier
+
+
+# Cria o objeto 'formant'
+	select Sound 'thisSound$'
+	To Formant (burg)... 0 4 4200 0.04 50
+	appendInfoLine: "Atenção para os parâmetros utilizados para o Formant (burg): 0 4 4200 0.04 50"	
+
+# Loop pelos intervalos
+	vogais_selecionadas=0
+   for interval_index from 1 to num_intervals
+	#select TextGrid 'name$'
+	select TextGrid 'thisTextGrid$'
+	label$ = Get label of interval: v_tier, interval_index
+
+	# Procura pelos rótulos produzidos pelo analista
+	if label$ <> ""
+		vogais_selecionadas=vogais_selecionadas+1
+		t_start = Get start time of interval: 1, interval_index
+		t_end = Get end time of interval: 1, interval_index
+		time_interval = (t_end - t_start)/(num_timepoints-1)
+
+		selectObject: "Formant 'thisSound$'"
+
+		# Loop contra os 'timepoints'
+		   for time_index from 1 to num_timepoints
+			time_re_onset = (time_index-1)*time_interval
+			current_time =  t_start + time_re_onset
+			#select Formant 'name$'
+			select Formant 'thisSound$'
+			f1 = Get value at time: 1, current_time, "hertz", "Linear"
+			f2 = Get value at time: 2, current_time, "hertz", "Linear"
+			f3 = Get value at time: 3, current_time, "hertz", "Linear"
+
+		     # Adiciona os valores na tabela
+			select Table formantes
+			Insert row: row_index + 1
+			row_index = row_index + 1
+			Set string value: row_index, "vogal", label$
+			Set numeric value: row_index, "time_index", time_index
+			Set numeric value: row_index, "v_time", 'time_re_onset:3'
+			Set numeric value: row_index, "time_abs", 'current_time:3'
+			if f1 != undefined
+				Set numeric value: row_index, "F1", 'f1:0'
+			else
+				Set string value: row_index, "F1", "NA"
+			endif
+			if f2 != undefined
+				Set numeric value: row_index, "F2", 'f2:0'
+			else
+				Set string value: row_index, "F2", "NA"
+			endif
+			if f3 != undefined
+				Set numeric value: row_index, "F3", 'f3:0'
+			else
+				Set string value: row_index, "F3", "NA"
+			endif
+
+		   endfor
+
+	# Fim de loop para rótulo em branco
+	endif
+
+   # Fim de loop para varredura nos intervalos produzidos pelo analista (vogais)
+   endfor
+	appendInfoLine: "Foram selecionados pelo usuário :", vogais_selecionadas , " amostras de vogais"	
+	appendInfoLine: "* PROCESSO ENCERRADO *"	
