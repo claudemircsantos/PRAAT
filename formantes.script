@@ -30,8 +30,7 @@
 #  Você irá observar a criação de um objeto contendo
 #  a tabela com os valores dos formantes.
 ################################################
-	# name$ = "NOME_ARQUIVO"
-	
+		
 	thisSound$ = selected$("Sound")
 	thisTextGrid$ = selected$("TextGrid")
 	writeInfoLine: "Iniciando o processo de extração ..."
