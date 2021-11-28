@@ -5,14 +5,14 @@
 ################################################
 # 
 # Com este procedimento é possível automatizar a extração 
-# dos formantes de vogais previamente selecionada pelo analista.
+# dos formantes de vogais previamente selecionadas pelo analista.
 #
 # 1. Crie um objeto do tipo "formant" para aquele som;
 # 2. Muita atenção na configuração do número de formantes
 # e no alcance do espectro.
 #
 # Marque os intervalos que deseja analisar
-# em um Textgrid, assim:
+# em um Textgrid:
 #
 # ~~~~~~~~ ------ ~~~~~~~ --- ~~~~~~~~ ---
 # __________________________________
