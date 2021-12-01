@@ -1,5 +1,6 @@
 ################################################
-#
+#  Por Claudemir C. Santos - claudemircsantos@uol.com.br
+#  
 #  Extrai formantes de vogais selecionadas com TextGrid
 #
 ################################################
