@@ -33,17 +33,27 @@
 	thisSound$ = selected$("Sound")
 	thisTextGrid$ = selected$("TextGrid")
 	writeInfoLine: "Iniciando o processo de extração ..."
+	appendInfoLine: " "
+	appendInfoLine: "################################################"
+	appendInfoLine: "#"
+	appendInfoLine: "#  Extrai formantes de vogais selecionadas com TextGrid"
+	appendInfoLine:	"#  "
+	appendInfoLine: "#  Claudemir C. Santos"
+	appendInfoLine: "#  claudemircsantos@uol.com.br "
+	appendInfoLine: "#"
+	appendInfoLine: "################################################"
 
-# How many timepoints?
+
+# Quantos timepoints?
 	num_timepoints = 10
-	appendInfoLine: "Rótulo dividido em: ", num_timepoints
+	appendInfoLine: "Rótulos: ", num_timepoints
 
 # Indicar o número do 'tier'
 	v_tier = 1
 
 # Constroi a tabela
 	appendInfoLine: "Criando tabela ..."	
-	Create Table with column names: "formantes", 0, "vogal time_index v_time time_abs F1 F2 F3"
+	tabelaformantes = Create Table with column names: "formantes", 0, "vogal time_index v_time time_abs F0 F1 F2 F3"
 	row_index = 0
 
 # Conta os intervalos
@@ -54,9 +64,15 @@
 
 # Cria o objeto 'formant'
 	select Sound 'thisSound$'
-	To Formant (burg)... 0 4 4200 0.04 50
-	appendInfoLine: "Atenção para os parâmetros utilizados para o Formant (burg): 0 4 4200 0.04 50"	
+	formantes = To Formant (burg)... 0 4 4000 0.04 50
+	appendInfoLine: "Formantes - Atenção para os parâmetros utilizados para o Formant (burg): 0 4 4200 0.04 50"	
 
+# Cria o objeto 'Pitch'
+	select Sound 'thisSound$'
+	fundamental = To Pitch (ac): 0, 75, 15, "no", 0.03, 0.45, 0.01, 0.35, 0.14, 600
+	appendInfoLine: "Pitch autocorrelação..."	
+	appendInfoLine: " "
+	
 # Loop pelos intervalos
 	vogais_selecionadas=0
    for interval_index from 1 to num_intervals
@@ -71,14 +87,24 @@
 		t_end = Get end time of interval: 1, interval_index
 		time_interval = (t_end - t_start)/(num_timepoints-1)
 
-		selectObject: "Formant 'thisSound$'"
+		#selectObject: "Formant 'thisSound$'"
 
 		# Loop contra os 'timepoints'
 		   for time_index from 1 to num_timepoints
 			time_re_onset = (time_index-1)*time_interval
 			current_time =  t_start + time_re_onset
+			
+			selectObject: "Pitch 'thisSound$'"
+			#select Formant 'name$'
+			select Pitch 'thisSound$'
+			f0 = Get value at time: current_time, "hertz", "Linear"
+			# appendInfoLine: "F0 - ", string$(f0)
+
+			
+			selectObject: "Formant 'thisSound$'"
 			#select Formant 'name$'
 			select Formant 'thisSound$'
+			
 			f1 = Get value at time: 1, current_time, "hertz", "Linear"
 			f2 = Get value at time: 2, current_time, "hertz", "Linear"
 			f3 = Get value at time: 3, current_time, "hertz", "Linear"
@@ -91,6 +117,14 @@
 			Set numeric value: row_index, "time_index", time_index
 			Set numeric value: row_index, "v_time", 'time_re_onset:3'
 			Set numeric value: row_index, "time_abs", 'current_time:3'
+
+			if f0 != undefined
+				Set numeric value: row_index, "F0", 'f0:0'
+			else
+				Set string value: row_index, "F0", "NA"
+			endif
+	
+
 			if f1 != undefined
 				Set numeric value: row_index, "F1", 'f1:0'
 			else
@@ -111,8 +145,16 @@
 
 	# Fim de loop para rótulo em branco
 	endif
+	
 
    # Fim de loop para varredura nos intervalos produzidos pelo analista (vogais)
    endfor
-	appendInfoLine: "Foram selecionados pelo usuário :", vogais_selecionadas , " amostras de vogais"	
+	
+ 	selectObject: tabelaformantes
+	View & Edit
+	
+	removeObject: fundamental, formantes 
+
+	appendInfoLine: "Foram selecionadas ", vogais_selecionadas , " amostras de vogais"	
 	appendInfoLine: "* PROCESSO ENCERRADO *"	
+
